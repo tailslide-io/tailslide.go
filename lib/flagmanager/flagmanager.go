@@ -6,18 +6,10 @@ import (
 
 	nats "github.com/nats-io/nats.go"
 	natsClient "github.com/tailslide-io/tailslide/lib/natsclient"
+	toggler "github.com/tailslide-io/tailslide/lib/toggler"
 	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
 )
 
-type FlagManagerConfig struct {
-	NatsServer string
-	Stream string
-	SdkKey string
-	AppId string
-	UserContext string
-	RedisHost string
-	RedisPort int
-}
 
 type FlagManager struct {
 	natsServer string
@@ -28,9 +20,9 @@ type FlagManager struct {
 
 }
 
-func New(config FlagManagerConfig) *FlagManager{
+func New(config tailslideTypes.FlagManagerConfig) *FlagManager{
 	return &FlagManager{
-		natsClient: natsClient.New(config.NatsServer, config.Stream, config.AppId, config.SdkKey, nil ),
+		natsClient: natsClient.New(config.NatsServer, config.Stream, fmt.Sprintf("%d",config.AppId), config.SdkKey, nil ),
 		userContext: config.UserContext,
 	}
 }
@@ -48,6 +40,8 @@ func (manager *FlagManager) SetFlags(message *nats.Msg){
 	fmt.Println(flags)
 }
 
+
+
 func (manager *FlagManager) GetFlags() []tailslideTypes.Flag{
 	return manager.flags
 }
@@ -57,5 +51,10 @@ func (manager *FlagManager) Disconnect(){
 	// manager.redistTSClient.Disconnect()
 }
 
-// func (manager *FlagManager) NewToggler(config){}
+func (manager *FlagManager) NewToggler(config toggler.TogglerConfig) (*toggler.Toggler, error){
+	config.GetFlags = manager.GetFlags
+	config.UserContext = manager.userContext
+	// config.EmitRedisSignal = manager.redistTSClient.EmitRedisSignal
+	return toggler.New(config)
+}
 

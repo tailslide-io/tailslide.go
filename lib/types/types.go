@@ -21,5 +21,15 @@ type Flag struct {
 	UpdatedAt string `json:"updated_at"`
 }
 
+type FlagManagerConfig struct {
+	NatsServer string
+	Stream string
+	SdkKey string
+	AppId int
+	UserContext string
+	RedisHost string
+	RedisPort int
+}
 
+type GetFlags func() []Flag
 
