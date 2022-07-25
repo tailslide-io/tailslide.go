@@ -1,8 +1,11 @@
 package toggler
 
 import (
+	"crypto/md5"
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
 )
@@ -44,29 +47,69 @@ func New(config TogglerConfig) (*Toggler, error) {
 }
 
 
-func (toggler *Toggler) IsFlagActive() bool {
-	return true
+func (toggler *Toggler) IsFlagActive() (bool) {
+	flag, err := toggler.getMatchingFlag()
+	if err != nil {
+		return false
+	}
+	return flag.IsActive && (toggler.isUserWhiteListed(flag) || toggler.validateUserRollout(flag))
 }
 
 // func (toggler *Toggler) EmitSuccess(){}
 // func (toggler *Toggler) EmitFailiure(){}
 
 func (toggler *Toggler) setFlagIdAndAppId() error {
-	matchingFlag := toggler.getMatchingFlag()
-	if matchingFlag == nil {
-		return errors.New(fmt.Sprintf("Cannot find flag with name: %s\n", toggler.flagName))
+	matchingFlag, err := toggler.getMatchingFlag()
+	if err != nil {
+		return err
 	}
+	toggler.flagId = matchingFlag.AppId
+	toggler.appId = matchingFlag.AppId
 	return nil
 }
 
-func (toggler *Toggler) getMatchingFlag() *tailslideTypes.Flag{
+func (toggler *Toggler) getMatchingFlag() (tailslideTypes.Flag, error){
 	flags := toggler.getFlags()
 	for _, flag := range flags {
 		if flag.Title == toggler.flagName {
-			return &flag
+			return flag, nil
 		}
 	}
-	return nil
+	return tailslideTypes.Flag{}, errors.New(fmt.Sprintf("Cannot find flag with name: %s\n", toggler.flagName))
 }
 
-func (toggler *Toggler) EmitFailiure(){}
+func (toggler *Toggler) isUserWhiteListed(flag tailslideTypes.Flag) bool{
+	for  _, user := range strings.Split(flag.WhiteListedUsers, ",") {
+		if user == toggler.userContext {
+			return true
+		}
+	}
+	return false
+}
+
+func (toggler *Toggler) validateUserRollout(flag tailslideTypes.Flag) bool {
+	rollout := flag.RolloutPercentage / 100.0
+	if toggler.circuitInRecovery(flag) {
+		rollout = rollout * (flag.CircuitRecoveryPercentage / 100.0)
+	}
+	return toggler.IsUserInRollout(rollout)
+}
+
+func (toggler *Toggler) circuitInRecovery(flag tailslideTypes.Flag) bool {
+	return flag.IsRecoverable && flag.CircuitStatus == "recovery"
+}
+
+func (toggler *Toggler) IsUserInRollout(rollout float32) bool {
+	fmt.Println("Rollout is ", rollout, "Hashed user value is ", toggler.hashUserContext())
+	return toggler.hashUserContext() <= rollout
+}
+
+
+func (toggler *Toggler) hashUserContext() float32 {
+	hash := md5.Sum([]byte(toggler.userContext))
+	hashString := fmt.Sprintf("%x", hash)
+	value, _ := strconv.ParseInt(hashString, 16, 8)
+	finaValue := float32(value % 100) / 100.0
+	return float32(finaValue)
+}
+

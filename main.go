@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"runtime"
+	"time"
 
 	nats "github.com/nats-io/nats.go"
 	flagManager "github.com/tailslide-io/tailslide/lib/flagmanager"
@@ -25,15 +27,24 @@ func main(){
 	manager := flagManager.New(config)
 	manager.InitializeFlags()
 	
+	flagName := "Flag in app 1 number 1"
 	flagConfig := toggler.TogglerConfig{
-		FlagName: "Flag in app 1 number 1",
+		FlagName: flagName,
 	}
 	toggler, err := manager.NewToggler(flagConfig)
-
 	if err != nil {
 		fmt.Println(err)
-	} else {
-		fmt.Println(toggler.IsFlagActive())
+		os.Exit(1)
+	}
+
+	
+	for {
+		if (toggler.IsFlagActive()){
+			fmt.Printf(`Flag in {app_id} with name "%s" is active!`, flagName)
+		} else {
+			fmt.Printf(`Flag in {app_id} with name "%s" is not active!`, flagName)
+		}
+		time.Sleep(4 * time.Second)
 	}
 
 
