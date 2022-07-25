@@ -12,7 +12,7 @@ type NatsClient struct {
 	stream string
 	subject string
 	token string
-	callback nats.MsgHandler
+	Callback nats.MsgHandler
 	natsConnection *nats.Conn
 }
 
@@ -22,11 +22,11 @@ func NewNatsClient(server, stream, subject, token string, callback nats.MsgHandl
 		stream: stream,
 		subject: subject,
 		token: token,
-		callback: callback,
+		Callback: callback,
 	}
 }
 
-func(client *NatsClient)  InitializeFlags(){
+func(client *NatsClient) InitializeFlags(){
 	client.connect()
 	client.fetchLatestMessage()
 	client.fetchOngoingEventMessages()
@@ -55,10 +55,11 @@ func (client *NatsClient) fetchLatestMessage(){
 	message, err := subscribedStream.NextMsg(1 * time.Second)
 	
 	if err == nil {
-			client.callback(message)
+			client.Callback(message)
 		} else {
 			fmt.Println("NextMsg timed out.")
 		}
+	subscribedStream.Unsubscribe()
 }
 
 func (client *NatsClient) fetchOngoingEventMessages(){
@@ -66,5 +67,9 @@ func (client *NatsClient) fetchOngoingEventMessages(){
 	if err != nil {
 		fmt.Println(err) 
 	} 		
-	jetStream.Subscribe(">", client.callback, nats.DeliverNew())
+	jetStream.Subscribe(">", client.Callback, nats.DeliverNew())
+}
+
+func (client *NatsClient) Disconnect(){
+	client.natsConnection.Close()
 }
