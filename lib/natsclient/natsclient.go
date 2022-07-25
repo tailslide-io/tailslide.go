@@ -16,7 +16,7 @@ type NatsClient struct {
 	natsConnection *nats.Conn
 }
 
-func NewNatsClient(server, stream, subject, token string, callback nats.MsgHandler) *NatsClient {
+func New(server, stream, subject, token string, callback nats.MsgHandler) *NatsClient {
 	return &NatsClient{
 		server: server,
 		stream: stream,
