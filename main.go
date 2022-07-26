@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 func main() {
 	config := tailslideTypes.FlagManagerConfig{
 		NatsServer:  "localhost:4222",
-		Stream:      "flags",
+		Stream:      "flags_ruleset",
 		AppId:       1,
 		SdkKey:      "myToken",
 		UserContext: "375d39e6-9c3f-4f58-80bd-e5960b710295",
@@ -36,25 +37,30 @@ func main() {
 	}
 
 	fmt.Println("I am past getting last message")
-	count := 0
+	if toggler.IsFlagActive() {
+		fmt.Printf(`Flag in {app_id} with name "%s" is active!`, flagName)
+	} else {
+		fmt.Printf(`Flag in {app_id} with name "%s" is not active!`, flagName)
+	}
 
-	for {
-		if toggler.IsFlagActive() {
-			fmt.Printf(`Flag in {app_id} with name "%s" is active!`, flagName)
-			fmt.Println()
+	fmt.Println()
+
+	count := 0
+	limit := 20
+
+	for count < limit {
+		if rand.Float32() < 1 {
+			fmt.Println("Emiting success")
 			toggler.EmitSuccess()
 		} else {
-			fmt.Printf(`Flag in {app_id} with name "%s" is not active!`, flagName)
-			fmt.Println()
+			fmt.Println("Emiting failure")
 			toggler.EmitFailiure()
 		}
-		time.Sleep(4 * time.Second)
+		time.Sleep(1 * time.Second)
 		count++
-		if count == 4 {
-			break
-		}
 	}
 	manager.Disconnect()
+	fmt.Println("Clients disconnected")
 
 	// runtime.Goexit()
 }

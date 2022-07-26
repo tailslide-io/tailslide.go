@@ -15,10 +15,6 @@ type TogglerConfig struct {
 	UserContext     string
 	GetFlags        tailslideTypes.GetFlags
 	EmitRedisSignal tailslideTypes.EmitRedisSignal
-	// FeatureCB
-	// DefaultCB
-	// ErrorCondition
-
 }
 
 type Toggler struct {
@@ -28,9 +24,6 @@ type Toggler struct {
 	userContext     string
 	getFlags        tailslideTypes.GetFlags
 	emitRedisSignal tailslideTypes.EmitRedisSignal
-	// FeatureCB
-	// DefaultCB
-	// ErrorCondition
 }
 
 func New(config TogglerConfig) (*Toggler, error) {

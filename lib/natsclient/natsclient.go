@@ -8,68 +8,71 @@ import (
 )
 
 type NatsClient struct {
-	server string
-	stream string
-	subject string
-	token string
-	Callback nats.MsgHandler
+	server         string
+	stream         string
+	subject        string
+	token          string
+	Callback       nats.MsgHandler
 	natsConnection *nats.Conn
 }
 
 func New(server, stream, subject, token string, callback nats.MsgHandler) *NatsClient {
 	return &NatsClient{
-		server: server,
-		stream: stream,
-		subject: subject,
-		token: token,
+		server:   server,
+		stream:   stream,
+		subject:  formatSubject(subject),
+		token:    token,
 		Callback: callback,
 	}
 }
 
-func(client *NatsClient) InitializeFlags(){
+func formatSubject(subject string) string {
+	return fmt.Sprintf("apps.%s.>", subject)
+}
+
+func (client *NatsClient) InitializeFlags() {
 	client.connect()
 	client.fetchLatestMessage()
 	client.fetchOngoingEventMessages()
 }
 
-func(client *NatsClient) connect(){
+func (client *NatsClient) connect() {
 	natsConnection, err := nats.Connect(client.server, nats.Token(client.token))
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println("Error connecting") 
-	} 		
+		fmt.Println("Error connecting")
+	}
 	client.natsConnection = natsConnection
 }
 
-
-func (client *NatsClient) fetchLatestMessage(){
+func (client *NatsClient) fetchLatestMessage() {
 	jetStream, err := client.natsConnection.JetStream()
 	if err != nil {
-		fmt.Println(err) 
-	} 		
+		fmt.Println(err)
+	}
 
 	subscribedStream, err := jetStream.SubscribeSync(">", nats.DeliverLast())
 	if err != nil {
-		fmt.Println("Error subscribing", err) 
-	} 		
+		fmt.Println("Error subscribing", err)
+	}
 	message, err := subscribedStream.NextMsg(1 * time.Second)
-	
+
 	if err == nil {
-			client.Callback(message)
-		} else {
-			fmt.Println("NextMsg timed out.")
-		}
+		client.Callback(message)
+	} else {
+		fmt.Println("NextMsg timed out.")
+	}
 	subscribedStream.Unsubscribe()
 }
 
-func (client *NatsClient) fetchOngoingEventMessages(){
+func (client *NatsClient) fetchOngoingEventMessages() {
 	jetStream, err := client.natsConnection.JetStream()
 	if err != nil {
-		fmt.Println(err) 
-	} 		
+		fmt.Println(err)
+	}
 	jetStream.Subscribe(">", client.Callback, nats.DeliverNew())
 }
 
-func (client *NatsClient) Disconnect(){
+func (client *NatsClient) Disconnect() {
 	client.natsConnection.Close()
 }
