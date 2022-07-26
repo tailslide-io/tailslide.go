@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"time"
 
 	nats "github.com/nats-io/nats.go"
@@ -13,21 +12,20 @@ import (
 	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
 )
 
-func main(){
+func main() {
 	config := tailslideTypes.FlagManagerConfig{
-		NatsServer : "localhost:4222",
-		Stream : "flags",
-		AppId : 1,
-		SdkKey : "myToken",
-		UserContext : "375d39e6-9c3f-4f58-80bd-e5960b710295",
-		RedisHost : "null",
-		RedisPort : 6379,
-
+		NatsServer:  "localhost:4222",
+		Stream:      "flags",
+		AppId:       1,
+		SdkKey:      "myToken",
+		UserContext: "375d39e6-9c3f-4f58-80bd-e5960b710295",
+		RedisHost:   "localhost",
+		RedisPort:   6379,
 	}
 	manager := flagManager.New(config)
 	manager.InitializeFlags()
-	
-	flagName := "Flag in app 1 number 1"
+
+	flagName := "App 1 Flag 1"
 	flagConfig := toggler.TogglerConfig{
 		FlagName: flagName,
 	}
@@ -37,22 +35,24 @@ func main(){
 		os.Exit(1)
 	}
 
-	
+	fmt.Println("I am past getting last message")
+
 	for {
-		if (toggler.IsFlagActive()){
+		if toggler.IsFlagActive() {
 			fmt.Printf(`Flag in {app_id} with name "%s" is active!`, flagName)
+			fmt.Println()
+			toggler.EmitSuccess()
 		} else {
 			fmt.Printf(`Flag in {app_id} with name "%s" is not active!`, flagName)
+			fmt.Println()
+			toggler.EmitFailiure()
 		}
 		time.Sleep(4 * time.Second)
 	}
 
-
-	fmt.Println("I am past getting last message")
-
-	runtime.Goexit()
+	// runtime.Goexit()
 }
 
 func printMessage(msg *nats.Msg) {
 	log.Println(string(msg.Data))
-} 
+}

@@ -11,10 +11,10 @@ import (
 )
 
 type TogglerConfig struct {
-	FlagName string
-	UserContext string
-	GetFlags tailslideTypes.GetFlags
-	// emitRedisSignal
+	FlagName        string
+	UserContext     string
+	GetFlags        tailslideTypes.GetFlags
+	EmitRedisSignal tailslideTypes.EmitRedisSignal
 	// FeatureCB
 	// DefaultCB
 	// ErrorCondition
@@ -22,12 +22,12 @@ type TogglerConfig struct {
 }
 
 type Toggler struct {
-	flagName string
-	flagId int
-	appId int
-	userContext string
-	getFlags tailslideTypes.GetFlags
-	// emitRedisSignal
+	flagName        string
+	flagId          int
+	appId           int
+	userContext     string
+	getFlags        tailslideTypes.GetFlags
+	emitRedisSignal tailslideTypes.EmitRedisSignal
 	// FeatureCB
 	// DefaultCB
 	// ErrorCondition
@@ -35,9 +35,10 @@ type Toggler struct {
 
 func New(config TogglerConfig) (*Toggler, error) {
 	toggler := Toggler{
-		flagName: config.FlagName,
-		userContext: config.UserContext,
-		getFlags: config.GetFlags,
+		flagName:        config.FlagName,
+		userContext:     config.UserContext,
+		getFlags:        config.GetFlags,
+		emitRedisSignal: config.EmitRedisSignal,
 	}
 	err := toggler.setFlagIdAndAppId()
 	if err != nil {
@@ -46,8 +47,7 @@ func New(config TogglerConfig) (*Toggler, error) {
 	return &toggler, nil
 }
 
-
-func (toggler *Toggler) IsFlagActive() (bool) {
+func (toggler *Toggler) IsFlagActive() bool {
 	flag, err := toggler.getMatchingFlag()
 	if err != nil {
 		return false
@@ -55,8 +55,19 @@ func (toggler *Toggler) IsFlagActive() (bool) {
 	return flag.IsActive && (toggler.isUserWhiteListed(flag) || toggler.validateUserRollout(flag))
 }
 
-// func (toggler *Toggler) EmitSuccess(){}
-// func (toggler *Toggler) EmitFailiure(){}
+func (toggler *Toggler) EmitSuccess() {
+	if toggler.flagId == 0 {
+		return
+	}
+	toggler.emitRedisSignal(toggler.flagId, toggler.appId, "success")
+}
+
+func (toggler *Toggler) EmitFailiure() {
+	if toggler.flagId == 0 {
+		return
+	}
+	toggler.emitRedisSignal(toggler.flagId, toggler.appId, "failure")
+}
 
 func (toggler *Toggler) setFlagIdAndAppId() error {
 	matchingFlag, err := toggler.getMatchingFlag()
@@ -68,7 +79,7 @@ func (toggler *Toggler) setFlagIdAndAppId() error {
 	return nil
 }
 
-func (toggler *Toggler) getMatchingFlag() (tailslideTypes.Flag, error){
+func (toggler *Toggler) getMatchingFlag() (tailslideTypes.Flag, error) {
 	flags := toggler.getFlags()
 	for _, flag := range flags {
 		if flag.Title == toggler.flagName {
@@ -78,8 +89,8 @@ func (toggler *Toggler) getMatchingFlag() (tailslideTypes.Flag, error){
 	return tailslideTypes.Flag{}, errors.New(fmt.Sprintf("Cannot find flag with name: %s\n", toggler.flagName))
 }
 
-func (toggler *Toggler) isUserWhiteListed(flag tailslideTypes.Flag) bool{
-	for  _, user := range strings.Split(flag.WhiteListedUsers, ",") {
+func (toggler *Toggler) isUserWhiteListed(flag tailslideTypes.Flag) bool {
+	for _, user := range strings.Split(flag.WhiteListedUsers, ",") {
 		if user == toggler.userContext {
 			return true
 		}
@@ -104,12 +115,10 @@ func (toggler *Toggler) IsUserInRollout(rollout float32) bool {
 	return toggler.hashUserContext() <= rollout
 }
 
-
 func (toggler *Toggler) hashUserContext() float32 {
 	hash := md5.Sum([]byte(toggler.userContext))
 	hashString := fmt.Sprintf("%x", hash)
 	value, _ := strconv.ParseInt(hashString, 16, 8)
-	finaValue := float32(value % 100) / 100.0
+	finaValue := float32(value%100) / 100.0
 	return float32(finaValue)
 }
-
