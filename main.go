@@ -36,6 +36,7 @@ func main() {
 	}
 
 	fmt.Println("I am past getting last message")
+	count := 0
 
 	for {
 		if toggler.IsFlagActive() {
@@ -48,7 +49,12 @@ func main() {
 			toggler.EmitFailiure()
 		}
 		time.Sleep(4 * time.Second)
+		count++
+		if count == 4 {
+			break
+		}
 	}
+	manager.Disconnect()
 
 	// runtime.Goexit()
 }

@@ -36,3 +36,7 @@ func (client *RedisTimeSeriesClient) EmitRedisSignal(flagId, appId int, status s
 	options.Labels = labels
 	client.redisClient.AddAutoTsWithOptions(keyName, 1, options)
 }
+
+func (client *RedisTimeSeriesClient) Disconnect() {
+	client.redisClient.Pool.Close()
+}

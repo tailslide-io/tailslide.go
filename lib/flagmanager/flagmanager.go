@@ -46,7 +46,7 @@ func (manager *FlagManager) GetFlags() []tailslideTypes.Flag {
 
 func (manager *FlagManager) Disconnect() {
 	manager.natsClient.Disconnect()
-	// manager.redistTSClient.Disconnect()
+	manager.redistTSClient.Disconnect()
 }
 
 func (manager *FlagManager) NewToggler(config toggler.TogglerConfig) (*toggler.Toggler, error) {
