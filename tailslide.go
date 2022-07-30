@@ -6,6 +6,8 @@ import (
 	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
 )
 
-type FlagManagerConfig tailslideTypes.FlagManagerConfig
-type FlagManager flagManager.FlagManager
-type TogglerConfig toggler.TogglerConfig
+type Tailslide struct {
+	flagManager.FlagManager
+	tailslideTypes.FlagManagerConfig
+	toggler.TogglerConfig
+}
