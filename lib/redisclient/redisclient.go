@@ -8,11 +8,12 @@ import (
 
 type RedisTimeSeriesClient struct {
 	host        string
-	port        int
+	port        string
 	redisClient *redistimeseries.Client
 }
 
-func New(host string, port int) *RedisTimeSeriesClient {
+func New(host, port string) *RedisTimeSeriesClient {
+
 	return &RedisTimeSeriesClient{
 		host: host,
 		port: port,
@@ -20,7 +21,7 @@ func New(host string, port int) *RedisTimeSeriesClient {
 }
 
 func (client *RedisTimeSeriesClient) Init() {
-	connectionString := fmt.Sprintf("%s:%d", client.host, client.port)
+	connectionString := fmt.Sprintf("%s:%s", client.host, client.port)
 
 	client.redisClient = redistimeseries.NewClient(connectionString, "", nil)
 }

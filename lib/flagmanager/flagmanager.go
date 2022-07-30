@@ -12,6 +12,7 @@ import (
 )
 
 type FlagManager struct {
+	natsStream     string
 	natsServer     string
 	natsClient     *natsClient.NatsClient
 	redistTSClient *redisClient.RedisTimeSeriesClient
@@ -21,7 +22,7 @@ type FlagManager struct {
 
 func New(config tailslideTypes.FlagManagerConfig) *FlagManager {
 	return &FlagManager{
-		natsClient:     natsClient.New(config.NatsServer, config.Stream, fmt.Sprintf("%d", config.AppId), config.SdkKey, nil),
+		natsClient:     natsClient.New(config.NatsServer, config.NatsStream, fmt.Sprintf("%d", config.AppId), config.SdkKey, nil),
 		redistTSClient: redisClient.New(config.RedisHost, config.RedisPort),
 		userContext:    config.UserContext,
 	}

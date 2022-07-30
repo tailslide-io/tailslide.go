@@ -23,12 +23,12 @@ type Flag struct {
 
 type FlagManagerConfig struct {
 	NatsServer  string
-	Stream      string
+	NatsStream  string
 	SdkKey      string
-	AppId       int
+	AppId       string
 	UserContext string
 	RedisHost   string
-	RedisPort   int
+	RedisPort   string
 }
 
 type GetFlags func() []Flag

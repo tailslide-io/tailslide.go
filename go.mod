@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/RedisTimeSeries/redistimeseries-go v1.4.4 // indirect
 	github.com/gomodule/redigo v1.8.2 // indirect
+	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/nats-io/nats.go v1.16.0 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
