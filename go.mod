@@ -1,4 +1,4 @@
-module github.com/tailslide-io/tailslide
+module github.com/tailslide-io/tailslide.go
 
 go 1.18
 

@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	nats "github.com/nats-io/nats.go"
-	natsClient "github.com/tailslide-io/tailslide/lib/natsclient"
-	redisClient "github.com/tailslide-io/tailslide/lib/redisclient"
-	toggler "github.com/tailslide-io/tailslide/lib/toggler"
-	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
+	natsClient "github.com/tailslide-io/tailslide.go/lib/natsclient"
+	redisClient "github.com/tailslide-io/tailslide.go/lib/redisclient"
+	toggler "github.com/tailslide-io/tailslide.go/lib/toggler"
+	tailslideTypes "github.com/tailslide-io/tailslide.go/lib/types"
 )
 
 type FlagManager struct {
@@ -43,6 +43,14 @@ func (manager *FlagManager) SetFlags(message *nats.Msg) {
 
 func (manager *FlagManager) GetFlags() []tailslideTypes.Flag {
 	return manager.flags
+}
+
+func (manager *FlagManager) SetUserContext(newUserContext string) {
+	manager.userContext = newUserContext
+}
+
+func (manager *FlagManager) GetUserContext() string {
+	return manager.userContext
 }
 
 func (manager *FlagManager) Disconnect() {

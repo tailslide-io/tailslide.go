@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	tailslideTypes "github.com/tailslide-io/tailslide/lib/types"
+	tailslideTypes "github.com/tailslide-io/tailslide.go/lib/types"
 )
 
 type TogglerConfig struct {
